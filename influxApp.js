@@ -47,5 +47,5 @@ app.get('/api/metrics', function(req, res) {
 });
 
 app.listen(5000, function () {
-  console.log('Example app listening on port 5000!');
+  console.log('InfluxApp listening on port 5000!');
 });
