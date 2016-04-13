@@ -1,6 +1,7 @@
 var influx = require('influx'),
     express = require('express'),
-    bodyParser = require('body-parser')
+    bodyParser = require('body-parser'),
+    cors = require('cors')
 
 var client = influx({
 
@@ -12,10 +13,11 @@ var client = influx({
     database: 'IoTMetrics'
 })
 
-var app = express()
+var app = express();
 
 // create application/json parser
 app.use(bodyParser.json())
+app.use(cors())
 
 // POST /api/users gets JSON bodies
 app.post('/api/metrics', function (req, res) {
@@ -27,17 +29,20 @@ app.post('/api/metrics', function (req, res) {
         console.log(req.body);
         client.writePoint("Soldier", {
             time: new Date(),
-            /*"id": req.body.id, */
-            "heart_rate": req.body.heart_rate,
-            "vi": req.body.vi,
-            "status": req.body.status,
-            "activity": req.body.activity,
-            "battery": req.body.battery,
-            "firstname": req.body.firstname,
-            "lastname": req.body.lastname
-        }, {/*tag_*/id: req.body.id}, function (err, response) {
-            if (err)
-                res.status(500).end(err.message);
+            "heart_rate": req.body.sensor.heart_rate,
+            "vi": req.body.sensor.vi,
+            "status": req.body.sensor.status,
+            "activity": req.body.sensor.activity,
+            "battery": req.body.sensor.battery,
+            "name": req.body.name,
+            "hulia_number": req.body.hulia_number,
+            "iron_number": req.body.iron_number
+
+        }, {id: req.body.id}, function (err, response) {
+            if (err) {
+                console.log(err);
+                res.status(500).end(err);
+            }
             else {
                 res.status(204).end();
             }
@@ -46,12 +51,12 @@ app.post('/api/metrics', function (req, res) {
 })
 
 app.get('/api/metrics', function (req, res) {
-    var query = 'SELECT id, firstname, lastname, heart_rate, vi, activity, status, battery,Last(vi) FROM Soldier group by id;'
+    var query = 'SELECT id, name, hulia_number, iron_number, vi, activity, status, battery,Last(vi) FROM Soldier group by id;'
     client.query(query, function (err, results) {
         if (err)
             res.status(500).end(err.message);
         else {
-            res.status(200).json(results);
+            res.status(200).json(results[0]);
         }
 
     })
